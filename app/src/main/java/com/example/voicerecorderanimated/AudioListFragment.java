@@ -91,6 +91,19 @@ public class AudioListFragment extends Fragment implements AudioListAdapter.onIt
             }
         });
 
+        playBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(isPlaying){
+                    pauseAudio();
+                }else {
+                    if(fileToPlay != null){
+                        resumeAudio();
+                    }
+                }
+            }
+        });
+
     }
 
     @Override
@@ -103,6 +116,18 @@ public class AudioListFragment extends Fragment implements AudioListAdapter.onIt
         } else {
             playAudio(fileToPlay);
         }
+    }
+
+    private void pauseAudio(){
+        mediaPlayer.pause();
+        playBtn.setImageDrawable(getActivity().getResources().getDrawable(R.drawable.player_play_btn, null));
+        isPlaying = false;
+    }
+
+    private void resumeAudio(){
+        mediaPlayer.start();
+        playBtn.setImageDrawable(getActivity().getResources().getDrawable(R.drawable.player_pause_btn, null));
+        isPlaying = true;
     }
 
     private void stopAudio() {
