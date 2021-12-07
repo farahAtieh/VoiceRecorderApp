@@ -2,10 +2,12 @@ package com.example.voicerecorderanimated;
 
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
+import android.widget.SeekBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -39,6 +41,10 @@ public class AudioListFragment extends Fragment implements AudioListAdapter.onIt
     private TextView playerHeader;
     private TextView playerFilename;
 
+    private SeekBar playerSeekbar;
+    private Handler seekbarHandler;//to make it sync real time
+    private Runnable updateSeekbar;
+
     public AudioListFragment(){}
 
     @Nullable
@@ -58,6 +64,8 @@ public class AudioListFragment extends Fragment implements AudioListAdapter.onIt
         playBtn = view.findViewById(R.id.player_play_btn);
         playerHeader = view.findViewById(R.id.player_header_title);
         playerFilename = view.findViewById(R.id.player_filename);
+
+        playerSeekbar = view.findViewById(R.id.player_seekbar);
 
         String path = getActivity().getExternalFilesDir("/").getAbsolutePath();
         File directory = new File(path);
@@ -87,12 +95,13 @@ public class AudioListFragment extends Fragment implements AudioListAdapter.onIt
 
     @Override
     public void onClickListener(File file, int position) {
+        fileToPlay = file;
+
         if(isPlaying){
             stopAudio();
             playAudio(fileToPlay);
         } else {
-        fileToPlay = file;
-        playAudio(fileToPlay);
+            playAudio(fileToPlay);
         }
     }
 
@@ -101,6 +110,7 @@ public class AudioListFragment extends Fragment implements AudioListAdapter.onIt
         playBtn.setImageDrawable(getActivity().getResources().getDrawable(R.drawable.player_play_btn, null));
         playerHeader.setText("Stopped");
         isPlaying = false;
+        mediaPlayer.stop();
     }
 
     private void playAudio(File fileToPlay) {
@@ -122,13 +132,24 @@ public class AudioListFragment extends Fragment implements AudioListAdapter.onIt
 
         //Play the audio
         isPlaying = true;
-        isPlaying = true;
 
         mediaPlayer.setOnCompletionListener(mp -> {
             stopAudio();
             playerHeader.setText("Finished");
         });
 
+        playerSeekbar.setMax(mediaPlayer.getDuration());
 
+        //update the seek bar using handler
+        seekbarHandler = new Handler();
+        updateSeekbar = new Runnable() { //to sync it to real-time
+            @Override
+            public void run() {
+                playerSeekbar.setProgress(mediaPlayer.getCurrentPosition());// the current progress
+                seekbarHandler.postDelayed(this, 500);
+
+            }
+        };
+        seekbarHandler.postDelayed(updateSeekbar, 0);
     }
 }
